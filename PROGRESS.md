@@ -11,7 +11,7 @@ Each application is built independently with its own frontend, backend, database
 | 1 | `01-blog-platform-medium-clone` | Blog Platform (Medium Clone) | Completed | 2026-11-16 | 7 suites, 33 tests passed (unit, integration, state machine, security) |
 | 2 | `02-recipe-sharing-platform` | Recipe Sharing Platform | Completed | 2026-11-16 | 7 suites, 16 tests passed (exact rational scaling, dimension-safe merger, rating uniqueness) |
 | 3 | `03-news-aggregator` | News Aggregator | Completed | 2026-11-16 | 8 suites, 47 tests passed (SSRF guard, canonicalization, deduplication, excerpt limits, feed parser, clustering, backoff/suspension, e2e) |
-| 4 | `04-note-taking-app-evernote-clone` | Note-Taking App (Evernote Clone) | Not Started | - | - |
+| 4 | `04-note-taking-app-evernote-clone` | Note-Taking App (Evernote Clone) | Completed | 2026-11-16 | 5 suites, 17 tests passed (3-way merge, sync queue, web clipper, markdown export, e2e sync) |
 | 5 | `05-newsletter-platform` | Newsletter Platform | Not Started | - | - |
 | 6 | `06-wiki-system` | Wiki System | Not Started | - | - |
 | 7 | `07-documentation-platform` | Documentation Platform | Not Started | - | - |
@@ -40,4 +40,11 @@ Each application is built independently with its own frontend, backend, database
 - **Completion Date**: 2026-11-16
 - **Test Summary**: 8 suites, 47 tests executed and passing (0 failures).
 - **Key Modules**: Publisher & Feed Source Registry, SSRF-Guarded Feed Ingestion Engine, Canonical URL Normalization, Multi-tier Duplicate Detection, Real-time Story Clustering, Category & Topic Taxonomies, Excerpt Length Enforcement & Publisher Attribution, Resilient Retry Worker with Exponential Backoff & Circuit Breaker / Suspension, Headline-dense Newsroom UI with Compact Reader, Discovery & Personalized Feeds, Admin Ingestion Console.
+- **Verification Gate**: Tests, independence check, documentation, and pre-push audit passed.
+
+### Phase 4: Note-Taking App (Evernote Clone)
+- **Status**: Completed
+- **Completion Date**: 2026-11-16
+- **Test Summary**: 5 suites, 17 tests executed and passing (0 failures).
+- **Key Modules**: Notebook & Stack Hierarchy, Tag Taxonomies, Optimistic Concurrency Engine (Server Revision Tracking & 409 Conflict Gating), 3-Way Text Merger & Conflict Resolution Copies, Offline-First Sync Queue with Client Operation IDs, Multi-device Session Management & Revocation, Debounced Autosave, Trash Retention & Restorable Revisions, Web Clipper with SSRF Guard, Multi-format Export (Markdown/PDF).
 - **Verification Gate**: Tests, independence check, documentation, and pre-push audit passed.
