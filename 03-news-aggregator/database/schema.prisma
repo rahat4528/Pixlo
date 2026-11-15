@@ -1,0 +1,315 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  READER
+}
+
+enum SourceStatus {
+  ACTIVE
+  SUSPENDED
+  ERROR
+  PAUSED
+}
+
+enum FeedFormat {
+  RSS
+  ATOM
+}
+
+enum JobStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+enum NotificationType {
+  BREAKING
+  TOPIC_ALERT
+  SYSTEM
+}
+
+model User {
+  id             String          @id @default(uuid())
+  email          String          @unique
+  passwordHash   String
+  displayName    String
+  avatarUrl      String?
+  role           UserRole        @default(READER)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  savedArticles  SavedArticle[]
+  readingHistory ReadingHistory[]
+  followedSources FollowedSource[]
+  preferences    UserPreference?
+  notifications  Notification[]
+
+  @@map("users")
+}
+
+model NewsSource {
+  id                  String          @id @default(uuid())
+  name                String
+  slug                String          @unique
+  websiteUrl          String
+  logoUrl             String?
+  description         String?
+  category            String          @default("general")
+  status              SourceStatus    @default(ACTIVE)
+  failureCount        Int             @default(0)
+  consecutiveFailures Int             @default(0)
+  lastFetchedAt       DateTime?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  feedSources         FeedSource[]
+  articles            NewsArticle[]
+  sourceMappings      ArticleSourceMapping[]
+  followers           FollowedSource[]
+
+  @@index([status])
+  @@index([category])
+  @@map("news_sources")
+}
+
+model FeedSource {
+  id                     String          @id @default(uuid())
+  sourceId               String
+  url                    String          @unique
+  format                 FeedFormat      @default(RSS)
+  refreshIntervalMinutes Int             @default(15)
+  etag                   String?
+  lastModified           String?
+  isActive               Boolean         @default(true)
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
+
+  source                 NewsSource      @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  sourceMappings         ArticleSourceMapping[]
+  ingestionJobs          IngestionJob[]
+  ingestionErrors        IngestionError[]
+
+  @@index([sourceId])
+  @@index([isActive])
+  @@map("feed_sources")
+}
+
+model StoryCluster {
+  id                      String        @id @default(uuid())
+  title                   String
+  representativeArticleId String?
+  category                String        @default("general")
+  firstPublishedAt        DateTime      @default(now())
+  lastPublishedAt         DateTime      @default(now())
+  articleCount            Int           @default(1)
+  isBreaking              Boolean       @default(false)
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
+
+  articles                NewsArticle[]
+
+  @@index([category])
+  @@index([isBreaking])
+  @@index([lastPublishedAt])
+  @@map("story_clusters")
+}
+
+model NewsArticle {
+  id                  String          @id @default(uuid())
+  sourceId            String
+  clusterId           String?
+  guid                String
+  title               String
+  normalizedTitleHash String
+  canonicalUrl        String          @unique
+  originalUrl         String
+  excerpt             String          // Enforced max excerpt length (<= 350 chars)
+  authorName          String?
+  publishedAt         DateTime        @default(now())
+  imageUrl            String?
+  category            String          @default("general")
+  language            String          @default("en")
+  isBreaking          Boolean         @default(false)
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  source              NewsSource      @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  cluster             StoryCluster?   @relation(fields: [clusterId], references: [id], onDelete: SetNull)
+  sourceMappings      ArticleSourceMapping[]
+  savedBy             SavedArticle[]
+  readingHistory      ReadingHistory[]
+
+  @@index([sourceId])
+  @@index([clusterId])
+  @@index([guid])
+  @@index([normalizedTitleHash])
+  @@index([category])
+  @@index([publishedAt])
+  @@index([isBreaking])
+  @@map("news_articles")
+}
+
+model ArticleCategory {
+  id           String      @id @default(uuid())
+  name         String
+  slug         String      @unique
+  description  String?
+  displayOrder Int         @default(0)
+
+  @@map("article_categories")
+}
+
+model ArticleTopic {
+  id           String      @id @default(uuid())
+  name         String
+  slug         String      @unique
+  articleCount Int         @default(0)
+
+  @@map("article_topics")
+}
+
+model ArticleSourceMapping {
+  id           String      @id @default(uuid())
+  articleId    String
+  sourceId     String
+  feedSourceId String
+  ingestedAt   DateTime    @default(now())
+
+  article      NewsArticle @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  source       NewsSource  @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  feedSource   FeedSource  @relation(fields: [feedSourceId], references: [id], onDelete: Cascade)
+
+  @@unique([articleId, feedSourceId])
+  @@index([articleId])
+  @@index([sourceId])
+  @@index([feedSourceId])
+  @@map("article_source_mappings")
+}
+
+model SavedArticle {
+  id        String      @id @default(uuid())
+  userId    String
+  articleId String
+  savedAt   DateTime    @default(now())
+  notes     String?
+
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article   NewsArticle @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, articleId])
+  @@index([userId])
+  @@index([articleId])
+  @@map("saved_articles")
+}
+
+model ReadingHistory {
+  id              String      @id @default(uuid())
+  userId          String
+  articleId       String
+  readAt          DateTime    @default(now())
+  durationSeconds Int         @default(0)
+
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article         NewsArticle @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([articleId])
+  @@index([readAt])
+  @@map("reading_history")
+}
+
+model FollowedSource {
+  id         String      @id @default(uuid())
+  userId     String
+  sourceId   String
+  followedAt DateTime    @default(now())
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  source     NewsSource  @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, sourceId])
+  @@index([userId])
+  @@index([sourceId])
+  @@map("followed_sources")
+}
+
+model UserPreference {
+  id                  String   @id @default(uuid())
+  userId              String   @unique
+  preferredCategories String   @default("[]") // JSON string array of slugs
+  preferredTopics     String   @default("[]") // JSON string array of topics
+  emailAlerts         Boolean  @default(true)
+  breakingAlerts      Boolean  @default(true)
+  compactMode         Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
+}
+
+model IngestionJob {
+  id              String      @id @default(uuid())
+  feedSourceId    String
+  status          JobStatus   @default(PENDING)
+  itemsFound      Int         @default(0)
+  itemsIngested   Int         @default(0)
+  itemsDuplicated Int         @default(0)
+  startedAt       DateTime    @default(now())
+  completedAt     DateTime?
+  errorMessage    String?
+
+  feedSource      FeedSource  @relation(fields: [feedSourceId], references: [id], onDelete: Cascade)
+
+  @@index([feedSourceId])
+  @@index([status])
+  @@index([startedAt])
+  @@map("ingestion_jobs")
+}
+
+model IngestionError {
+  id           String      @id @default(uuid())
+  feedSourceId String
+  jobId        String?
+  errorCode    String
+  errorMessage String
+  errorDetails String?
+  retryCount   Int         @default(0)
+  nextRetryAt  DateTime?
+  resolved     Boolean     @default(false)
+  createdAt    DateTime    @default(now())
+
+  feedSource   FeedSource  @relation(fields: [feedSourceId], references: [id], onDelete: Cascade)
+
+  @@index([feedSourceId])
+  @@index([resolved])
+  @@index([createdAt])
+  @@map("ingestion_errors")
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  title     String
+  message   String
+  link      String?
+  isRead    Boolean          @default(false)
+  type      NotificationType @default(SYSTEM)
+  createdAt DateTime         @default(now())
+
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+  @@map("notifications")
+}
