@@ -12,7 +12,7 @@ Each application is built independently with its own frontend, backend, database
 | 2 | `02-recipe-sharing-platform` | Recipe Sharing Platform | Completed | 2026-11-16 | 7 suites, 16 tests passed (exact rational scaling, dimension-safe merger, rating uniqueness) |
 | 3 | `03-news-aggregator` | News Aggregator | Completed | 2026-11-16 | 8 suites, 47 tests passed (SSRF guard, canonicalization, deduplication, excerpt limits, feed parser, clustering, backoff/suspension, e2e) |
 | 4 | `04-note-taking-app-evernote-clone` | Note-Taking App (Evernote Clone) | Completed | 2026-11-16 | 5 suites, 17 tests passed (3-way merge, sync queue, web clipper, markdown export, e2e sync) |
-| 5 | `05-newsletter-platform` | Newsletter Platform | Not Started | - | - |
+| 5 | `05-newsletter-platform` | Newsletter Platform | In Progress | - | - |
 | 6 | `06-wiki-system` | Wiki System | Not Started | - | - |
 | 7 | `07-documentation-platform` | Documentation Platform | Not Started | - | - |
 | 8 | `08-cms-platform-wordpress-alternative` | CMS Platform (WordPress Alternative) | Not Started | - | - |
