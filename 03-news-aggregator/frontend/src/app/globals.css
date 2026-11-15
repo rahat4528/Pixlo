@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-news-bg text-news-ink antialiased font-sans selection:bg-news-accent selection:text-white;
+  }
+}
