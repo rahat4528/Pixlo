@@ -11,7 +11,7 @@ Every application in this repository is completely self-contained with its own f
 | Folder | Application Name | Core Focus & Architecture | Status |
 |---|---|---|---|
 | `01-blog-platform-medium-clone` | **Blog Platform (Medium Clone)** | Editorial long-form article publishing platform, multi-author publications, rich typography, personalized feeds, revision history, and author analytics. | Completed |
-| `02-recipe-sharing-platform` | **Recipe Sharing Platform** | Culinary social platform featuring exact-arithmetic ingredient scaling, unit dimensions, step checklists, weekly meal planning, and shopping list generators. | Not Started |
+| `02-recipe-sharing-platform` | **Recipe Sharing Platform** | Culinary social platform featuring exact-arithmetic ingredient scaling, unit dimensions, step checklists, weekly meal planning, and shopping list generators. | Completed |
 | `03-news-aggregator` | **News Aggregator** | Content curation platform featuring feed ingestion, duplicate detection, story clustering, category taxonomies, and SSRF-safe parsers. | Not Started |
 | `04-note-taking-app-evernote-clone` | **Note-Taking App (Evernote Clone)** | Personal productivity workspace featuring notebooks, hierarchical tags, optimistic concurrency, conflict resolution, offline synchronization, and search indexing. | Not Started |
 | `05-newsletter-platform` | **Newsletter Platform** | Consent-based subscriber broadcasting engine with double opt-in, email template designers, campaign pipelines, unsubscribe compliance, and delivery tracking. | Not Started |
