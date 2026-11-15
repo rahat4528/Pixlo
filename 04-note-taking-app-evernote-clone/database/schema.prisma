@@ -1,0 +1,292 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SyncStatus {
+  APPLIED
+  CONFLICT
+  REJECTED
+}
+
+enum RevisionReason {
+  AUTOSAVE
+  MANUAL_SAVE
+  CONFLICT_COPY
+  RESTORED
+}
+
+enum ShareRole {
+  VIEW
+  EDIT
+}
+
+enum BlockType {
+  PARAGRAPH
+  HEADING
+  CHECKLIST
+  CODE
+  TABLE
+  IMAGE
+  DIVIDER
+}
+
+model User {
+  id             String          @id @default(uuid())
+  email          String          @unique
+  passwordHash   String
+  displayName    String
+  avatarUrl      String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  notebooks      Notebook[]
+  notebookStacks NotebookStack[]
+  notes          Note[]
+  tags           Tag[]
+  reminders      Reminder[]
+  deviceSessions DeviceSession[]
+  syncRecords    SyncRecord[]
+  sharedNotes    SharedNotePermission[] @relation("GrantedPermissions")
+
+  @@map("users")
+}
+
+model NotebookStack {
+  id        String     @id @default(uuid())
+  userId    String
+  name      String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notebooks Notebook[]
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@map("notebook_stacks")
+}
+
+model Notebook {
+  id        String         @id @default(uuid())
+  userId    String
+  stackId   String?
+  name      String
+  color     String?        @default("#4f46e5")
+  isDefault Boolean        @default(false)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stack     NotebookStack? @relation(fields: [stackId], references: [id], onDelete: SetNull)
+  notes     Note[]
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@index([stackId])
+  @@map("notebooks")
+}
+
+model Note {
+  id             String          @id @default(uuid())
+  userId         String
+  notebookId     String
+  title          String          @default("Untitled Note")
+  content        String          @default("") // Rich text JSON or Markdown
+  plainText      String          @default("") // Searchable extracted text
+  isPinned       Boolean         @default(false)
+  isStarred      Boolean         @default(false)
+  isArchived     Boolean         @default(false)
+  isTrashed      Boolean         @default(false)
+  trashedAt      DateTime?
+  serverRevision Int             @default(1)
+  clientOpId     String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notebook       Notebook        @relation(fields: [notebookId], references: [id], onDelete: Cascade)
+  tags           NoteTag[]
+  revisions      NoteRevision[]
+  blocks         NoteBlock[]
+  attachments    Attachment[]
+  reminders      Reminder[]
+  syncRecords    SyncRecord[]
+  shares         SharedNotePermission[]
+
+  @@index([userId])
+  @@index([notebookId])
+  @@index([isTrashed])
+  @@index([isPinned])
+  @@index([isStarred])
+  @@index([serverRevision])
+  @@index([updatedAt])
+  @@map("notes")
+}
+
+model NoteRevision {
+  id             String          @id @default(uuid())
+  noteId         String
+  revisionNumber Int
+  title          String
+  content        String
+  plainText      String
+  reason         RevisionReason  @default(AUTOSAVE)
+  createdAt      DateTime        @default(now())
+
+  note           Note            @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@unique([noteId, revisionNumber])
+  @@index([noteId])
+  @@index([createdAt])
+  @@map("note_revisions")
+}
+
+model NoteBlock {
+  id          String    @id @default(uuid())
+  noteId      String
+  blockType   BlockType @default(PARAGRAPH)
+  contentJson String    @default("{}")
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  note        Note      @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@index([noteId])
+  @@index([sortOrder])
+  @@map("note_blocks")
+}
+
+model Tag {
+  id        String    @id @default(uuid())
+  userId    String
+  name      String
+  slug      String
+  color     String?   @default("#10b981")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notes     NoteTag[]
+
+  @@unique([userId, slug])
+  @@index([userId])
+  @@map("tags")
+}
+
+model NoteTag {
+  noteId String
+  tagId  String
+
+  note   Note   @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([noteId, tagId])
+  @@index([noteId])
+  @@index([tagId])
+  @@map("note_tags")
+}
+
+model Attachment {
+  id        String   @id @default(uuid())
+  noteId    String
+  userId    String
+  fileName  String
+  fileType  String
+  fileSize  Int
+  storageKey String
+  ocrText   String?  // OCR extracted text from images/scans
+  createdAt DateTime @default(now())
+
+  note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@index([noteId])
+  @@index([userId])
+  @@map("attachments")
+}
+
+model Reminder {
+  id          String   @id @default(uuid())
+  noteId      String
+  userId      String
+  remindAt    DateTime
+  isCompleted Boolean  @default(false)
+  recurrence  String?  // NONE, DAILY, WEEKLY, MONTHLY
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  note        Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([noteId])
+  @@index([remindAt])
+  @@index([isCompleted])
+  @@map("reminders")
+}
+
+model SyncRecord {
+  id              String     @id @default(uuid())
+  userId          String
+  deviceId        String
+  noteId          String
+  clientOpId      String
+  operation       String     // CREATE, UPDATE, DELETE
+  baseRevision    Int
+  appliedRevision Int
+  status          SyncStatus @default(APPLIED)
+  createdAt       DateTime   @default(now())
+
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  note            Note       @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, clientOpId])
+  @@index([userId])
+  @@index([noteId])
+  @@index([deviceId])
+  @@index([createdAt])
+  @@map("sync_records")
+}
+
+model DeviceSession {
+  id         String   @id @default(uuid())
+  userId     String
+  deviceId   String
+  deviceName String
+  platform   String
+  userAgent  String?
+  ipAddress  String?
+  lastSyncAt DateTime @default(now())
+  isRevoked  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, deviceId])
+  @@index([userId])
+  @@index([isRevoked])
+  @@map("device_sessions")
+}
+
+model SharedNotePermission {
+  id           String    @id @default(uuid())
+  noteId       String
+  granterId     String
+  granteeEmail String
+  role         ShareRole @default(VIEW)
+  createdAt    DateTime  @default(now())
+
+  granter      User      @relation("GrantedPermissions", fields: [granterId], references: [id], onDelete: Cascade)
+  note         Note      @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@unique([noteId, granteeEmail])
+  @@index([noteId])
+  @@index([granteeEmail])
+  @@map("shared_note_permissions")
+}
