@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pixlo_blog_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: pixlo_user
+      POSTGRES_PASSWORD: pixlo_password
+      POSTGRES_DB: pixlo_blog_db
+    ports:
+      - "5431:5432"
+    volumes:
+      - blog_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pixlo_user -d pixlo_blog_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: pixlo_blog_redis
+    restart: unless-stopped
+    ports:
+      - "6381:6379"
+    volumes:
+      - blog_redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:RELEASE.2024-05-10T01-41-38Z
+    container_name: pixlo_blog_storage
+    restart: unless-stopped
+    command: server /data --console-address ":9002"
+    environment:
+      MINIO_ROOT_USER: pixlo_minio_admin
+      MINIO_ROOT_PASSWORD: pixlo_minio_secret_key
+    ports:
+      - "9001:9000"
+      - "9002:9002"
+    volumes:
+      - blog_miniodata:/data
+
+volumes:
+  blog_pgdata:
+  blog_redisdata:
+  blog_miniodata:

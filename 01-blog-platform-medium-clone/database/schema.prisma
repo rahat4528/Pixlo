@@ -1,0 +1,364 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  READER
+  AUTHOR
+  ADMIN
+}
+
+enum PublicationRole {
+  OWNER
+  EDITOR
+  WRITER
+}
+
+enum ArticleStatus {
+  DRAFT
+  SUBMITTED
+  IN_REVIEW
+  CHANGES_REQUESTED
+  APPROVED
+  SCHEDULED
+  PUBLISHED
+  UNPUBLISHED
+}
+
+enum ReactionType {
+  APPLAUSE
+  INSIGHTFUL
+  HEART
+}
+
+enum ReviewVerdict {
+  PENDING
+  APPROVED
+  CHANGES_REQUESTED
+}
+
+enum MembershipStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+model User {
+  id           String          @id @default(uuid())
+  email        String          @unique
+  passwordHash String
+  role         UserRole        @default(READER)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  profile      AuthorProfile?
+  articles     Article[]       @relation("UserArticles")
+  memberships  PublicationMember[]
+  followers    Follow[]        @relation("Followees")
+  following    Follow[]        @relation("Followers")
+  reactions    Reaction[]
+  comments     Comment[]
+  bookmarks    Bookmark[]
+  history      ReadingHistory[]
+  readingLists ReadingList[]
+  notifications Notification[] @relation("UserNotifications")
+  paidMemberships Membership[] @relation("UserMemberships")
+  reviews      EditorialReview[]
+}
+
+model AuthorProfile {
+  id           String    @id @default(uuid())
+  userId       String    @unique
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  username     String    @unique
+  displayName  String
+  bio          String?
+  avatarUrl    String?
+  socialLinks  Json?
+  isPaidAuthor Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Publication {
+  id            String              @id @default(uuid())
+  name          String
+  slug          String              @unique
+  description   String?
+  logoUrl       String?
+  coverImageUrl String?
+  requireReview Boolean             @default(true)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  members       PublicationMember[]
+  articles      Article[]
+}
+
+model PublicationMember {
+  id            String          @id @default(uuid())
+  publicationId String
+  publication   Publication     @relation(fields: [publicationId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role          PublicationRole @default(WRITER)
+  joinedAt      DateTime        @default(now())
+
+  @@unique([publicationId, userId])
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  articles    Article[]
+}
+
+model Tag {
+  id       String       @id @default(uuid())
+  name     String       @unique
+  slug     String       @unique
+  articles ArticleTag[]
+}
+
+model Article {
+  id                 String             @id @default(uuid())
+  authorId           String
+  author             User               @relation("UserArticles", fields: [authorId], references: [id], onDelete: Cascade)
+  publicationId      String?
+  publication        Publication?       @relation(fields: [publicationId], references: [id], onDelete: SetNull)
+  categoryId         String?
+  category           Category?          @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  title              String
+  slug               String             @unique
+  excerpt            String?
+  content            Json
+  htmlContent        String
+  coverImageUrl      String?
+  status             ArticleStatus      @default(DRAFT)
+  scheduledAt        DateTime?
+  publishedAt        DateTime?
+  readingTimeMinutes Int                @default(1)
+  isMembersOnly      Boolean            @default(false)
+  viewCount          Int                @default(0)
+  applauseCount      Int                @default(0)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  tags               ArticleTag[]
+  revisions          ArticleRevision[]
+  blocks             ArticleBlock[]
+  images             ArticleImage[]
+  reviews            EditorialReview[]
+  reactions          Reaction[]
+  comments           Comment[]
+  bookmarks          Bookmark[]
+  history            ReadingHistory[]
+  readingListItems   ReadingListItem[]
+  analytics          ArticleAnalytics[]
+
+  @@index([status, publishedAt])
+  @@index([authorId])
+  @@index([publicationId])
+  @@index([slug])
+}
+
+model ArticleTag {
+  id        String   @id @default(uuid())
+  articleId String
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  tagId     String
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([articleId, tagId])
+}
+
+model ArticleRevision {
+  id          String   @id @default(uuid())
+  articleId   String
+  article     Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  version     Int
+  title       String
+  content     Json
+  summary     String?
+  createdAt   DateTime @default(now())
+  createdBy   String
+
+  @@unique([articleId, version])
+}
+
+model ArticleBlock {
+  id          String   @id @default(uuid())
+  articleId   String
+  article     Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  type        String
+  orderIndex  Int
+  data        Json
+
+  @@index([articleId, orderIndex])
+}
+
+model ArticleImage {
+  id         String   @id @default(uuid())
+  articleId  String
+  article    Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  url        String
+  altText    String?
+  caption    String?
+  width      Int?
+  height     Int?
+  mimeType   String
+  sizeBytes  Int
+
+  @@index([articleId])
+}
+
+model EditorialReview {
+  id          String        @id @default(uuid())
+  articleId   String
+  article     Article       @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  reviewerId  String
+  reviewer    User          @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+  status      ReviewVerdict @default(PENDING)
+  reviewNotes String?
+  reviewedAt  DateTime      @default(now())
+
+  @@index([articleId])
+}
+
+model Follow {
+  id          String   @id @default(uuid())
+  followerId  String
+  follower    User     @relation("Followers", fields: [followerId], references: [id], onDelete: Cascade)
+  followeeId  String
+  followee    User     @relation("Followees", fields: [followeeId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followeeId])
+}
+
+model Reaction {
+  id        String       @id @default(uuid())
+  articleId String
+  article   Article      @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      ReactionType @default(APPLAUSE)
+  count     Int          @default(1)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@unique([articleId, userId, type])
+}
+
+model Comment {
+  id               String    @id @default(uuid())
+  articleId        String
+  article          Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  authorId         String
+  author           User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parentId         String?
+  parent           Comment?  @relation("ThreadReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies          Comment[] @relation("ThreadReplies")
+  content          String
+  isModerated      Boolean   @default(false)
+  moderationReason String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([articleId, parentId])
+}
+
+model Bookmark {
+  id        String   @id @default(uuid())
+  articleId String
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([articleId, userId])
+}
+
+model ReadingHistory {
+  id               String   @id @default(uuid())
+  articleId        String
+  article          Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  readPercent      Float    @default(0)
+  scrollDepth      Float    @default(0)
+  timeSpentSeconds Int      @default(0)
+  updatedAt        DateTime @updatedAt
+
+  @@unique([articleId, userId])
+}
+
+model ReadingList {
+  id        String            @id @default(uuid())
+  userId    String
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  isPrivate Boolean           @default(false)
+  createdAt DateTime          @default(now())
+  items     ReadingListItem[]
+}
+
+model ReadingListItem {
+  id            String      @id @default(uuid())
+  readingListId String
+  readingList   ReadingList @relation(fields: [readingListId], references: [id], onDelete: Cascade)
+  articleId     String
+  article       Article     @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  addedAt       DateTime    @default(now())
+
+  @@unique([readingListId, articleId])
+}
+
+model Notification {
+  id          String   @id @default(uuid())
+  recipientId String
+  recipient   User     @relation("UserNotifications", fields: [recipientId], references: [id], onDelete: Cascade)
+  actorId     String?
+  type        String
+  message     String
+  resourceId  String?
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([recipientId, isRead])
+}
+
+model ArticleAnalytics {
+  id                     String   @id @default(uuid())
+  articleId              String
+  article                Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  sessionId              String
+  ipHash                 String?
+  userAgent              String?
+  readCompletionPercent  Float    @default(0)
+  timeSpentSeconds       Int      @default(0)
+  viewedAt               DateTime @default(now())
+
+  @@unique([articleId, sessionId])
+}
+
+model Membership {
+  id                  String           @id @default(uuid())
+  userId              String
+  user                User             @relation("UserMemberships", fields: [userId], references: [id], onDelete: Cascade)
+  targetAuthorId      String?
+  targetPublicationId String?
+  status              MembershipStatus @default(ACTIVE)
+  tier                String           @default("standard")
+  expiresAt           DateTime?
+  createdAt           DateTime         @default(now())
+
+  @@index([userId, status])
+}
