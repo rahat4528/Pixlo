@@ -1,5 +1,4 @@
 import { EmailDeliveryAdapter, SendEmailOptions, SendEmailResult } from './email-adapter.interface';
-import * as nodemailer from 'nodemailer';
 
 export interface SmtpConfig {
   host: string;
@@ -11,12 +10,19 @@ export interface SmtpConfig {
 
 export class SmtpEmailAdapter implements EmailDeliveryAdapter {
   public readonly providerName = 'smtp';
-  private transporter: nodemailer.Transporter | null = null;
+  private transporter: any = null;
 
   constructor(private config: SmtpConfig) {}
 
-  private getTransporter(): nodemailer.Transporter {
+  private getTransporter(): any {
     if (!this.transporter) {
+      let nodemailer: any;
+      try {
+        nodemailer = require('nodemailer');
+      } catch {
+        throw new Error('Nodemailer package is required for SMTP delivery');
+      }
+
       this.transporter = nodemailer.createTransport({
         host: this.config.host,
         port: this.config.port,
