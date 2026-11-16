@@ -51,3 +51,16 @@ desktop.ini
 # Local Storage / Uploads
 storage/uploads/*
 !storage/uploads/.gitkeep
+
+# Python Cache & Virtual Environments
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+env/
+venv/
+*.db
+*.sqlite3
