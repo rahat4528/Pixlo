@@ -1,7 +1,9 @@
 import os
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="allow")
+
     PROJECT_NAME: str = "Pixlo Wiki System"
     PORT: int = 4006
     ENVIRONMENT: str = "development"
@@ -19,9 +21,5 @@ class Settings(BaseSettings):
     
     STORAGE_DIR: str = os.getenv("STORAGE_DIR", "../storage/uploads")
     MAX_UPLOAD_SIZE_BYTES: int = 10 * 1024 * 1024  # 10 MB
-
-    class Config:
-        env_file = ".env"
-        extra = "allow"
 
 settings = Settings()
