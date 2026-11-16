@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased font-sans;
+  }
+}
+
+.doc-callout-note {
+  @apply border-l-4 border-sky-500 bg-sky-50 text-sky-950 p-4 rounded-r-lg my-4;
+}
+
+.doc-callout-tip {
+  @apply border-l-4 border-emerald-500 bg-emerald-50 text-emerald-950 p-4 rounded-r-lg my-4;
+}
+
+.doc-callout-warning {
+  @apply border-l-4 border-amber-500 bg-amber-50 text-amber-950 p-4 rounded-r-lg my-4;
+}
+
+.doc-callout-danger {
+  @apply border-l-4 border-rose-500 bg-rose-50 text-rose-950 p-4 rounded-r-lg my-4;
+}
+
+.prose pre {
+  @apply bg-slate-900 text-slate-100 p-4 rounded-xl overflow-x-auto text-xs font-mono my-4;
+}
+
+.prose code {
+  @apply bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded text-xs font-mono;
+}
+
+.prose pre code {
+  @apply bg-transparent p-0 text-inherit;
+}
+
+.prose table {
+  @apply w-full border-collapse my-4 text-xs;
+}
+
+.prose th {
+  @apply bg-slate-100 font-semibold p-2.5 text-left border border-slate-200 text-slate-800;
+}
+
+.prose td {
+  @apply p-2.5 border border-slate-200 text-slate-700;
+}
+
+mark {
+  @apply bg-amber-200 text-slate-950 px-1 py-0.5 rounded;
+}
