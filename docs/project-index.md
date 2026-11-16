@@ -7,6 +7,6 @@
 | 03 | `03-news-aggregator` | News Aggregator | News Syndication | FE: 3003 / BE: 4003 | Completed | [Docs](file:///c:/project%2003/pixLo%20Content/03-news-aggregator/docs/) |
 | 04 | `04-note-taking-app-evernote-clone` | Note-Taking App (Evernote Clone) | Personal Workspace | FE: 3004 / BE: 4004 | Completed | [Docs](file:///c:/project%2003/pixLo%20Content/04-note-taking-app-evernote-clone/docs/) |
 | 05 | `05-newsletter-platform` | Newsletter Platform | Audience Broadcast | FE: 3005 / BE: 4005 | Completed | [Docs](file:///c:/project%2003/pixLo%20Content/05-newsletter-platform/docs/) |
-| 06 | `06-wiki-system` | Wiki System | Team Knowledge Base | FE: 3006 / BE: 4006 | Not Started | [Docs](file:///c:/project%2003/pixLo%20Content/06-wiki-system/docs/) |
+| 06 | `06-wiki-system` | Wiki System | Team Knowledge Base | FE: 3006 / BE: 4006 | Completed | [Docs](file:///c:/project%2003/pixLo%20Content/06-wiki-system/docs/) |
 | 07 | `07-documentation-platform` | Documentation Platform | Technical Docs | FE: 3007 / BE: 4007 | Not Started | [Docs](file:///c:/project%2003/pixLo%20Content/07-documentation-platform/docs/) |
 | 08 | `08-cms-platform-wordpress-alternative` | CMS Platform (WordPress Alternative) | Headless Content Engine | FE: 3008 / BE: 4008 | Not Started | [Docs](file:///c:/project%2003/pixLo%20Content/08-cms-platform-wordpress-alternative/docs/) |

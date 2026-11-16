@@ -13,7 +13,7 @@ Each application is built independently with its own frontend, backend, database
 | 3 | `03-news-aggregator` | News Aggregator | Completed | 2026-11-16 | 8 suites, 47 tests passed (SSRF guard, canonicalization, deduplication, excerpt limits, feed parser, clustering, backoff/suspension, e2e) |
 | 4 | `04-note-taking-app-evernote-clone` | Note-Taking App (Evernote Clone) | Completed | 2026-11-16 | 5 suites, 17 tests passed (3-way merge, sync queue, web clipper, markdown export, e2e sync) |
 | 5 | `05-newsletter-platform` | Newsletter Platform | Completed | 2026-11-16 | 5 suites, 19 tests passed (double opt-in, suppression lists, template engine, batch dispatch, analytics tracking) |
-| 6 | `06-wiki-system` | Wiki System | In Progress | - | - |
+| 6 | `06-wiki-system` | Wiki System | Completed | 2026-11-16 | 6 suites, 19 tests passed (diff engine, backlinks, permissions, approvals, asset storage, e2e api) |
 | 7 | `07-documentation-platform` | Documentation Platform | Not Started | - | - |
 | 8 | `08-cms-platform-wordpress-alternative` | CMS Platform (WordPress Alternative) | Not Started | - | - |
 
@@ -54,4 +54,11 @@ Each application is built independently with its own frontend, backend, database
 - **Completion Date**: 2026-11-16
 - **Test Summary**: 5 suites, 19 tests executed and passing (0 failures).
 - **Key Modules**: Double Opt-In Verification Flow, RFC 8058 One-Click List-Unsubscribe, Publication-Scoped Suppression Lists, 3-Strike Soft Bounce Escalation, Dynamic Merge Tags Engine, Mandatory Unsubscribe Footer Injection, Transparent Tracking Pixel & Link Redirection, Campaign Lifecycle State Machine, Rate-Limited Worker Dispatch Pipeline, Pluggable Delivery Adapters (Mock, SMTP, SES, Resend), Creator Studio Frontend with Desktop/Mobile Preview Toggle.
+- **Verification Gate**: Tests, independence check, documentation, and pre-push audit passed.
+
+### Phase 6: Wiki System
+- **Status**: Completed
+- **Completion Date**: 2026-11-16
+- **Test Summary**: 6 suites, 19 tests executed and passing (0 failures); Next.js frontend production build verified.
+- **Key Modules**: Space Hierarchy & Partitioning, Unified Line Diff Engine (`difflib`), Page Versioning & Instant Rollback, Bidirectional Backlink Reconciliation (`[[slug|label]]` & Markdown links), Granular Role-Based Permissions with Space Inheritance & Page Overrides, Multi-State Approval Workflow (`DRAFT` -> `IN_REVIEW` -> `PUBLISHED`/`REJECTED`), Content-Addressable Local Asset Storage (SHA-256), Next.js Tree Viewer, Page Reader, Diff Modal, Wiki-Link Composer, and Review Queue Dashboard.
 - **Verification Gate**: Tests, independence check, documentation, and pre-push audit passed.
