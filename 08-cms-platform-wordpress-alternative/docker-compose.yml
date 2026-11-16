@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  cms_postgres:
+    image: postgres:16-alpine
+    container_name: pixlo_cms_postgres
+    environment:
+      POSTGRES_USER: pixlo_cms_user
+      POSTGRES_PASSWORD: pixlo_cms_password
+      POSTGRES_DB: pixlo_cms_db
+    ports:
+      - "5438:5432"
+    volumes:
+      - cms_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pixlo_cms_user -d pixlo_cms_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  cms_redis:
+    image: redis:7-alpine
+    container_name: pixlo_cms_redis
+    ports:
+      - "6388:6379"
+    volumes:
+      - cms_redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  cms_pgdata:
+  cms_redisdata:
