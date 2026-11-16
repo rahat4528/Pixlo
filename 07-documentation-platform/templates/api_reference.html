@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- API Reference Sidebar -->
+<aside class="w-64 flex-shrink-0 pr-8 hidden md:block border-r border-gray-200">
+  <div class="sticky top-24 space-y-6">
+    <div>
+      <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">API Operations</h3>
+      <nav class="space-y-4">
+        {% for tag, endpoints in grouped_endpoints.items() %}
+        <div>
+          <span class="text-xs font-bold text-gray-800 uppercase tracking-wider block mb-1">{{ tag }}</span>
+          <div class="space-y-1">
+            {% for ep in endpoints %}
+            <a href="#{{ ep.id }}" class="flex items-center space-x-2 px-2 py-1 text-xs rounded hover:bg-gray-100 text-gray-700">
+              <span class="font-mono font-bold text-xs uppercase
+                {% if ep.method == 'GET' %}text-emerald-600
+                {% elif ep.method == 'POST' %}text-blue-600
+                {% elif ep.method == 'PUT' %}text-amber-600
+                {% elif ep.method == 'DELETE' %}text-rose-600
+                {% else %}text-purple-600{% endif %}">
+                {{ ep.method }}
+              </span>
+              <span class="truncate">{{ ep.summary }}</span>
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </nav>
+    </div>
+  </div>
+</aside>
+
+<!-- API Endpoints List -->
+<main class="flex-1 min-w-0 px-4 md:px-8 space-y-12">
+  <div>
+    <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">{{ api_meta.title }}</h1>
+    <p class="text-gray-600 mt-2 text-sm">{{ api_meta.description }}</p>
+    <div class="mt-4 inline-flex items-center space-x-2 bg-gray-100 px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-mono text-gray-700">
+      <span class="font-bold text-gray-500">Base URL:</span>
+      <span>{{ api_meta.base_url }}</span>
+    </div>
+  </div>
+
+  {% for ep in endpoints %}
+  <section id="{{ ep.id }}" class="border-t border-gray-200 pt-8">
+    <div class="flex items-center space-x-3 mb-2">
+      <span class="px-2.5 py-1 text-xs font-bold font-mono rounded text-white
+        {% if ep.method == 'GET' %}bg-emerald-600
+        {% elif ep.method == 'POST' %}bg-blue-600
+        {% elif ep.method == 'PUT' %}bg-amber-600
+        {% elif ep.method == 'DELETE' %}bg-rose-600
+        {% else %}bg-purple-600{% endif %}">
+        {{ ep.method }}
+      </span>
+      <h2 class="text-lg font-mono font-bold text-gray-900">{{ ep.path }}</h2>
+    </div>
+    <p class="text-sm text-gray-700 mb-4">{{ ep.summary }}</p>
+
+    <!-- Two-column: Specs on left, Code sample on right -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="space-y-4 text-xs">
+        {% if ep.parameters and ep.parameters|length > 0 %}
+        <div>
+          <h4 class="font-bold uppercase tracking-wider text-gray-500 mb-2">Parameters</h4>
+          <table class="w-full border-collapse border border-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="border border-gray-200 p-2 text-left">Name</th>
+                <th class="border border-gray-200 p-2 text-left">In</th>
+                <th class="border border-gray-200 p-2 text-left">Required</th>
+                <th class="border border-gray-200 p-2 text-left">Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in ep.parameters %}
+              <tr>
+                <td class="border border-gray-200 p-2 font-mono font-bold">{{ p.name }}</td>
+                <td class="border border-gray-200 p-2">{{ p.in }}</td>
+                <td class="border border-gray-200 p-2 font-semibold {% if p.required %}text-rose-600{% else %}text-gray-400{% endif %}">
+                  {{ p.required }}
+                </td>
+                <td class="border border-gray-200 p-2">{{ p.description }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% endif %}
+
+        {% if ep.responses %}
+        <div>
+          <h4 class="font-bold uppercase tracking-wider text-gray-500 mb-2">Responses</h4>
+          <div class="space-y-2">
+            {% for code, r in ep.responses.items() %}
+            <div class="p-2 border border-gray-200 rounded bg-white">
+              <span class="font-mono font-bold {% if code.startswith('2') %}text-emerald-600{% else %}text-rose-600{% endif %}">{{ code }}</span>
+              <span class="ml-2 text-gray-700">{{ r.description }}</span>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Code Snippet -->
+      <div>
+        <h4 class="font-bold uppercase tracking-wider text-gray-500 mb-2 text-xs">Request Sample (cURL)</h4>
+        <pre class="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-xs overflow-x-auto leading-relaxed">{{ ep.curl_snippet }}</pre>
+      </div>
+    </div>
+  </section>
+  {% endfor %}
+</main>
+{% endblock %}

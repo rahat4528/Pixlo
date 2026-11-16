@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  docs_postgres:
+    image: postgres:16-alpine
+    container_name: pixlo_docs_postgres
+    environment:
+      POSTGRES_USER: pixlo_docs_user
+      POSTGRES_PASSWORD: pixlo_docs_password
+      POSTGRES_DB: pixlo_docs_db
+    ports:
+      - "5437:5432"
+    volumes:
+      - docs_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pixlo_docs_user -d pixlo_docs_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  docs_redis:
+    image: redis:7-alpine
+    container_name: pixlo_docs_redis
+    ports:
+      - "6387:6379"
+    volumes:
+      - docs_redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  docs_pgdata:
+  docs_redisdata:

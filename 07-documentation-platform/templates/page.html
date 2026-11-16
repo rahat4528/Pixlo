@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Sidebar Navigation -->
+<aside class="w-64 flex-shrink-0 pr-8 hidden md:block border-r border-gray-200">
+  <div class="sticky top-24 space-y-6">
+    <div>
+      <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">Navigation</h3>
+      <nav class="space-y-1">
+        {% for nav_page in navigation_pages %}
+        <a href="/docs/{{ current_version }}/{{ nav_page.slug }}"
+           class="block px-3 py-1.5 text-sm rounded-md transition {% if nav_page.slug == current_slug %}bg-indigo-50 text-indigo-700 font-semibold{% else %}text-gray-600 hover:bg-gray-100 hover:text-gray-900{% endif %}">
+          {{ nav_page.title }}
+        </a>
+        {% endfor %}
+      </nav>
+    </div>
+  </div>
+</aside>
+
+<!-- Article Content -->
+<main class="flex-1 min-w-0 px-4 md:px-8">
+  <article class="prose max-w-none">
+    <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight mb-4">{{ page_title }}</h1>
+    <div class="doc-body leading-relaxed text-gray-800">
+      {{ content_html | safe }}
+    </div>
+  </article>
+</main>
+
+<!-- Right Table of Contents (TOC) -->
+{% if toc and toc|length > 0 %}
+<aside class="w-56 flex-shrink-0 pl-6 hidden lg:block border-l border-gray-200">
+  <div class="sticky top-24">
+    <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">On this page</h3>
+    <ul class="space-y-2 text-xs text-gray-600">
+      {% for item in toc %}
+      <li>
+        <a href="#{{ item.id }}" class="hover:text-indigo-600 transition block truncate">
+          {{ item.title }}
+        </a>
+        {% if item.children and item.children|length > 0 %}
+        <ul class="pl-3 mt-1 space-y-1 border-l border-gray-200 text-gray-500">
+          {% for child in item.children %}
+          <li>
+            <a href="#{{ child.id }}" class="hover:text-indigo-600 transition block truncate">
+              {{ child.title }}
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</aside>
+{% endif %}
+{% endblock %}
